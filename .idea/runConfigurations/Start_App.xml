@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Start App" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="Spring-Boot-Starter-Discord-Example" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.zgamelogic.application.App" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
