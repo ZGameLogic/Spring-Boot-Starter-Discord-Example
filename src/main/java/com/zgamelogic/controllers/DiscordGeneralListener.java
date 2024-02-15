@@ -30,11 +30,15 @@ public class DiscordGeneralListener {
      */
     @DiscordMapping
     private void onReady(ReadyEvent event){
+        /*
+        This here is used to update the commands for your bot.
+        You should only be updating commands in one place as if you do it in different requests they will overwrite each other.
+         */
         bot.updateCommands().addCommands(
-                Commands.slash("ping", "Sends a ping to the bot"),
-                Commands.user("Name user"),
-                Commands.message("Count words")
-        ).queue();
+                Commands.slash("ping", "Sends a ping to the bot"), // Slash command, so when the user types "/ping" in discord, this command and its description comes up
+                Commands.user("Name user"), // User command, right-clicking a user and going to app > "Name user" will activate this command
+                Commands.message("Count words") // Message command, right-clicking a message and going to app > "Count words" will activate this command
+        ).queue(); // JDA requires its actions to be queued (or completed, more on that later)
     }
 
     /**
@@ -66,7 +70,7 @@ public class DiscordGeneralListener {
      */
     @DiscordMapping(Id = "Name user")
     private void nameUser(UserContextInteractionEvent event){
-        event.reply(event.getTargetMember().getUser().getName()).queue();
+        event.reply(event.getTargetMember().getEffectiveName()).queue(); // Sends the name of the user that got clicked on
     }
 
     /**
@@ -76,13 +80,13 @@ public class DiscordGeneralListener {
      */
     @DiscordMapping(Id = "Count words")
     private void countWords(MessageContextInteractionEvent event){
-        event.reply(
-                (event.getTarget().getContentRaw().split(" ").length + 1) + ""
-        ).queue();
+        event.reply(String.valueOf(
+                event.getTarget().getContentRaw().trim().split("[ \n]").length
+        )).queue(); // Sends the count of words in the message that was clicked on
     }
 
     /**
-     * This is a rest mapping. On a get rest request it'll post pong to every default text channel
+     * This is a rest api mapping. On a get rest request it'll post pong to every guilds default text channel
      */
     @GetMapping("ping")
     private void restPingPong(){
