@@ -3,18 +3,24 @@ package com.zgamelogic.controllers;
 import com.zgamelogic.annotations.Bot;
 import com.zgamelogic.annotations.DiscordController;
 import com.zgamelogic.annotations.DiscordMapping;
+import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.interaction.command.MessageContextInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @DiscordController
 @RestController
+@Slf4j
 public class DiscordGeneralListener {
 
     /**
@@ -30,15 +36,7 @@ public class DiscordGeneralListener {
      */
     @DiscordMapping
     private void onReady(ReadyEvent event){
-        /*
-        This here is used to update the commands for your bot.
-        You should only be updating commands in one place as if you do it in different requests they will overwrite each other.
-         */
-        bot.updateCommands().addCommands(
-                Commands.slash("ping", "Sends a ping to the bot"), // Slash command, so when the user types "/ping" in discord, this command and its description comes up
-                Commands.user("Name user"), // User command, right-clicking a user and going to app > "Name user" will activate this command
-                Commands.message("Count words") // Message command, right-clicking a message and going to app > "Count words" will activate this command
-        ).queue(); // JDA requires its actions to be queued (or completed, more on that later)
+        log.info("Bot {} has finished loading", event.getJDA().getSelfUser().getName()); // Prints the name of the bot to the console
     }
 
     /**
@@ -91,5 +89,18 @@ public class DiscordGeneralListener {
     @GetMapping("ping")
     private void restPingPong(){
         bot.getGuilds().forEach(guild -> guild.getDefaultChannel().asTextChannel().sendMessage("pong").queue());
+    }
+
+    @Bean
+    private List<CommandData> generalCommands(){
+        /*
+        This here is used to update the commands for your bot.
+        You can set any number of beans with a list or single CommandData to be added to the global commands list on bot launch
+         */
+        return List.of(
+                Commands.slash("ping", "Sends a ping to the bot"), // Slash command, so when the user types "/ping" in discord, this command and its description comes up
+                Commands.user("Name user"), // User command, right-clicking a user and going to app > "Name user" will activate this command
+                Commands.message("Count words") // Message command, right-clicking a message and going to app > "Count words" will activate this command
+        );
     }
 }
