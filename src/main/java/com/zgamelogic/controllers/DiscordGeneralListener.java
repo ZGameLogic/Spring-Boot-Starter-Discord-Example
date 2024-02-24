@@ -3,15 +3,21 @@ package com.zgamelogic.controllers;
 import com.zgamelogic.annotations.Bot;
 import com.zgamelogic.annotations.DiscordController;
 import com.zgamelogic.annotations.DiscordMapping;
+import com.zgamelogic.annotations.EventProperty;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.MessageContextInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
+import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -84,6 +90,37 @@ public class DiscordGeneralListener {
     }
 
     /**
+     * This is the auto complete response for the options slash command for the fruit option.
+     * @param event CommandAutoCompleteInteractionEvent that triggers when a use focuses the fruit option.
+     */
+    @DiscordMapping(Id = "options", FocusedOption = "fruit")
+    private void optionsAutoCompleteResponse(CommandAutoCompleteInteractionEvent event){
+        List<String> validFruits = List.of("Apple", "Banana", "Pear"); // list of valid fruits
+        String typedFruit = event.getFocusedOption().getValue(); // current value of the typed fruit on discord
+        List<Command.Choice> choices = validFruits.stream() // get a stream of valid fruits
+                .filter(fruit -> fruit.contains(typedFruit)) // filter the stream to only include fruits that contain the typed discord fruit
+                .map(fruit -> new Command.Choice(fruit, fruit)).toList(); // convert the stream into command choices. First parameter is the displayed value, the second parameter is the value that gets sent to discord
+        event.replyChoices(choices).queue();
+    }
+
+    /**
+     * This is the slash command response for the options slash command
+     * @param event SlashCommandInteractionEvent for options.
+     * @param fruit Fruit value. Equivalent to event.getOption("fruit").getAsString();
+     * @param user User value. Equivalent to event.getOption("user").getAsUser();
+     */
+    @DiscordMapping(Id = "options")
+    private void optionsSlashCommand(
+            SlashCommandInteractionEvent event,
+            @EventProperty String fruit,
+            @EventProperty User user
+    ){
+        log.info("Fruit: {} was selected", fruit);
+        log.info("User: {} was selected", user.getName());
+        event.reply(user.getName() + " wants " + fruit).queue();
+    }
+
+    /**
      * This is a rest api mapping. On a get rest request it'll post pong to every guilds default text channel
      */
     @GetMapping("ping")
@@ -100,7 +137,11 @@ public class DiscordGeneralListener {
         return List.of(
                 Commands.slash("ping", "Sends a ping to the bot"), // Slash command, so when the user types "/ping" in discord, this command and its description comes up
                 Commands.user("Name user"), // User command, right-clicking a user and going to app > "Name user" will activate this command
-                Commands.message("Count words") // Message command, right-clicking a message and going to app > "Count words" will activate this command
+                Commands.message("Count words"), // Message command, right-clicking a message and going to app > "Count words" will activate this command
+                Commands.slash("options", "A command with some options").addOptions(
+                        new OptionData(OptionType.STRING, "fruit", "Pick a fruit", true, true),
+                        new OptionData(OptionType.USER, "user", "Pick a user", true)
+                )
         );
     }
 }
