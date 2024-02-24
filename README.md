@@ -10,7 +10,7 @@ Java Discord API (JDA) is a java library that lets you create discord bots in ja
 ## Spring Boot Starter Discord
 Spring boot starter discord, like the other starters, adds in discord bot management functionality into your java application. Like other spring libraries, it adds in custom annotations to help manage discord events as well as some application properties to configure the bot.
 
-## [App.java](.src/main/java/com/zgamelogic/application/App.java)
+## [App.java](src/main/java/com/zgamelogic/application/App.java)
 This is a classic spring start. 
 ```java
 @SpringBootApplication(scanBasePackages = {
